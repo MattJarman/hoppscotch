@@ -102,6 +102,7 @@ ul {
 
 <script>
 import { fb } from "~/helpers/fb"
+import debounce from "@/helpers/utils/debounce"
 
 export default {
   props: {
@@ -121,6 +122,7 @@ export default {
       editingFolderIndex: undefined,
       editingRequest: undefined,
       editingRequestIndex: undefined,
+      filteredCollections: undefined,
       filterText: "",
     }
   },
@@ -129,11 +131,6 @@ export default {
       return fb.currentUser !== null
         ? fb.currentCollections
         : this.$store.state.postwoman.collections
-    },
-    filteredCollections() {
-      const filterText = this.filterText.toLowerCase()
-      const collections = JSON.parse(JSON.stringify(this.collections))
-      return this.filterData(collections, filterText)
     },
   },
   async mounted() {
@@ -240,6 +237,23 @@ export default {
         return hasFolders || hasRequests
       })
     },
+  },
+  watch: {
+    filterText: {
+      handler: debounce(function (search) {
+        const collections = JSON.parse(JSON.stringify(this.collections))
+
+        if (!search) {
+          this.filteredCollections = collections
+          return
+        }
+
+        this.filteredCollections = this.filterData(collections, search.toLowerCase())
+      }, 400),
+    },
+  },
+  beforeMount() {
+    this.filteredCollections = JSON.parse(JSON.stringify(this.collections))
   },
   beforeDestroy() {
     document.removeEventListener("keydown", this._keyListener)
