@@ -6,6 +6,12 @@ TODO:
 <template>
   <pw-section class="yellow" :label="$t('collections')" ref="collections">
     <add-collection :show="showModalAdd" @hide-modal="displayModalAdd(false)" />
+    <div class="show-on-large-screen">
+      <input aria-label="Search" type="search" :placeholder="$t('search')" v-model="filterText" />
+      <button class="icon">
+        <i class="material-icons">search</i>
+      </button>
+    </div>
     <edit-collection
       :show="showModalEdit"
       :editingCollection="editingCollection"
@@ -66,7 +72,7 @@ TODO:
     </p>
     <div class="virtual-list">
       <ul>
-        <li v-for="(collection, index) in collections" :key="collection.name">
+        <li v-for="(collection, index) in filteredCollections" :key="collection.name">
           <collection
             :collection-index="index"
             :collection="collection"
@@ -115,6 +121,7 @@ export default {
       editingFolderIndex: undefined,
       editingRequest: undefined,
       editingRequestIndex: undefined,
+      filterText: "",
     }
   },
   computed: {
@@ -122,6 +129,11 @@ export default {
       return fb.currentUser !== null
         ? fb.currentCollections
         : this.$store.state.postwoman.collections
+    },
+    filteredCollections() {
+      const filterText = this.filterText.toLowerCase()
+      const collections = JSON.parse(JSON.stringify(this.collections))
+      return this.filterData(collections, filterText)
     },
   },
   async mounted() {
@@ -204,6 +216,29 @@ export default {
           fb.writeCollections(JSON.parse(JSON.stringify(this.$store.state.postwoman.collections)))
         }
       }
+    },
+    filterData(data, filter) {
+      return data.filter((element) => {
+        const match = element.name.toLowerCase().includes(filter)
+
+        if (match) {
+          return true
+        }
+
+        let hasRequests = false
+        if (element.hasOwnProperty("requests")) {
+          element.requests = this.filterData(element.requests, filter)
+          hasRequests = element.requests.length > 0
+        }
+
+        let hasFolders = false
+        if (element.hasOwnProperty("folders")) {
+          element.folders = this.filterData(element.folders, filter)
+          hasFolders = element.folders.length > 0
+        }
+
+        return hasFolders || hasRequests
+      })
     },
   },
   beforeDestroy() {
