@@ -251,6 +251,13 @@ export default {
         this.filteredCollections = this.filterData(collections, search.toLowerCase())
       }, 400),
     },
+    collections: {
+      handler() {
+        const collections = JSON.parse(JSON.stringify(this.collections))
+        this.filteredCollections = this.filterData(collections, this.filterText.toLowerCase())
+      },
+      deep: true,
+    },
   },
   beforeMount() {
     this.filteredCollections = JSON.parse(JSON.stringify(this.collections))
