@@ -12,6 +12,11 @@ TODO:
         <i class="material-icons">search</i>
       </button>
     </div>
+    <ul :class="{ hidden: filteredCollections.length != 0 || collections.length === 0 }">
+      <li>
+        <label>{{ $t("nothing_found") }} "{{ filterText }}"</label>
+      </li>
+    </ul>
     <edit-collection
       :show="showModalEdit"
       :editingCollection="editingCollection"
@@ -97,6 +102,10 @@ TODO:
 ul {
   display: flex;
   flex-direction: column;
+}
+
+.hidden {
+  display: none;
 }
 </style>
 
